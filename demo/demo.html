@@ -15,10 +15,10 @@
 			var roll = new InfinityRoll();
 			roll.container = container;
 			roll.url = function(where) {
-				return "data.json";
+				return "../data.json";
 			};
 			roll.moreResults = function(pagenum, first_index, last_index) {
-				return "data2.json";
+				return "../data2.json";
 			};
 			roll.customTile = function(obj) {
 				var html = "<div class='tile'>";
