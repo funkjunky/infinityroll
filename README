@@ -1,0 +1,18 @@
+This is an infinite scroll plugin.
+
+The simplest use is:
+var roll = new InfinityRoll();
+roll.url = function(where) {
+	return "myurl.com/rolls";
+};
+roll.dostuff() //this will be removed as soon as i turn everything into a function call.
+
+If you'd prefer to grab your data in chunks, you can use the moreResults method to specify how to get additional pages of data:
+roll.moreResults = function(pagenum, first_index, last_index){
+	return "myurl.com/morerolls";
+};
+
+By default infinityRoll expects an array of images, but if you want to make your own tile to be displayed with custom data, then you can use the customTile method:
+roll.customTile = function(obj) {
+	return "<div><h1>"+obj.rollname+"</h1><h2>"+obj.goodWithButter+"</h2><img src='"+obj.imgsrc+"'>"+obj.rollname+" image</img>";
+};

@@ -1,0 +1,33 @@
+<html>
+	<head>
+		<title>Testing out infinityroll</title>
+	</head>
+	<body>
+		<h1>Testing out InfinityRoll</h1>
+		<h2>An infinite scroll plugin that can handle any content</h2>
+		<div id="container">
+		</div>
+		<div style="position: fixed; bottom:0px; background-color:white;">HI!</div>
+		<link rel="stylesheet" type="text/css" href="infinityroll.css">
+		<script src="infinityroll.js"></script>
+		<script>
+			var container = document.querySelector("#container");
+			var roll = new InfinityRoll();
+			roll.container = container;
+			roll.url = function(where) {
+				return "data.json";
+			};
+			roll.moreResults = function(pagenum, first_index, last_index) {
+				return "data2.json";
+			};
+			roll.customTile = function(obj) {
+				var html = "<div class='tile'>";
+				html += " <h3>" + obj.title + "</h3>";
+				html += " <img src='"+obj.src+"'></img>";
+				html += "</div>";
+				return html;
+			};
+			roll.dostuff();
+		</script>
+	</body>
+</html>
