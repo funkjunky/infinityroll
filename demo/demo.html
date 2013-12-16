@@ -5,29 +5,42 @@
 	<body>
 		<h1>Testing out InfinityRoll</h1>
 		<h2>An infinite scroll plugin that can handle any content</h2>
+		<button id="reset">Reset</button>
 		<div id="container">
 		</div>
 		<div style="position: fixed; bottom:0px; background-color:white;">HI!</div>
+		<link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+		<link rel="stylesheet" type="text/css" href="brandicted.css">
 		<link rel="stylesheet" type="text/css" href="infinityroll.css">
+		<script src="jquery.js"></script>
 		<script src="infinityroll.js"></script>
 		<script>
-			var container = document.querySelector("#container");
-			var roll = new InfinityRoll();
-			roll.container = container;
-			roll.url = function(where) {
-				return "../data.json";
-			};
-			roll.moreResults = function(pagenum, first_index, last_index) {
-				return "../data2.json";
-			};
-			roll.customTile = function(obj) {
-				var html = "<div class='tile'>";
-				html += " <h3>" + obj.title + "</h3>";
-				html += " <img src='"+obj.src+"'></img>";
-				html += "</div>";
-				return html;
-			};
-			roll.dostuff();
+			$(function() {
+				var rollDiv = $("#container").InfinityRoll({
+					url: function(where) {
+						//return "http://api.brandicted.com/happenings";
+						return "brandicted.json";
+					},
+					collectionMember: function(obj) {
+						return obj.data;
+					},
+					moreResults: function(pagenum, first_index, last_index) {
+						//return "http://api.brandicted.com/happenings";
+						return "brandicted.json";
+					},
+					customTile: function(obj) {
+						var html = "<div class='square'>";
+						//html += " <h3>" + obj.text + "</h3>";
+						html += " <img src='"+obj.media.square.url+"'></img>";
+						html += "</div>";
+						return html;
+					},
+				});
+
+				$("#reset").click(function() {
+					rollDiv.InfinityRoll("reset");
+				});
+			});
 		</script>
 	</body>
 </html>
