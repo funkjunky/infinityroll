@@ -1,11 +1,6 @@
 TODO:
- - During reset, how do I catch up on where the user was before?
-	if they were on index 120, and the count increased by 30, then we should load to 150 and scroll them to whereever they were last?
-	- I need to seperate away the data loading of more results.
-	- I also need to separate the div creation
-	- then just keep calling more results until we've reached our quota, while keeping track of our old data
-	- after each callback, we can call the div creation, that would check old data (calling insertBefores or some such)
-		- if this ends up being slow, we could add a check if where we are inserting is the same div, don't insert it. 
+ - I need to try integrating it with Brandicted... because a json file will not longer cut it.
+
  - remove self. We shouldn just reorganize out code so this is always in context.
  - add an end. Let the user define what the end looks like when we call moreResults
 	- if more results returns length 0, then show the end.

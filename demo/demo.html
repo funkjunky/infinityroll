@@ -5,7 +5,7 @@
 	<body>
 		<h1>Testing out InfinityRoll</h1>
 		<h2>An infinite scroll plugin that can handle any content</h2>
-		<button id="reset">Reset</button>
+		<button id="syncDOM">Sync DOM</button>
 		<div id="container">
 		</div>
 		<div style="position: fixed; bottom:0px; background-color:white;">HI!</div>
@@ -13,21 +13,27 @@
 		<link rel="stylesheet" type="text/css" href="brandicted.css">
 		<link rel="stylesheet" type="text/css" href="infinityroll.css">
 		<script src="jquery.js"></script>
+		<script src="underscore.js"></script>
+		<script src="backbone.js"></script>
 		<script src="infinityroll.js"></script>
 		<script>
 			$(function() {
+				var Happenings = Backbone.Collection.extend({
+					url: "brandicted.json",
+					model: Backbone.Model,
+					parse: function(result) {
+						console.log("fetched results");
+						return result.data
+					},
+				});
+				var happenings = new Happenings();
+				happenings.fetch();
+
+				//**Actual Plugin!**//
 				var rollDiv = $("#container").InfinityRoll({
-					url: function(where) {
-						//return "http://api.brandicted.com/happenings";
-						return "brandicted.json";
-					},
-					collectionMember: function(obj) {
-						return obj.data;
-					},
-					moreResults: function(pagenum, first_index, last_index) {
-						//return "http://api.brandicted.com/happenings";
-						return "brandicted.json";
-					},
+
+					bbCollection: happenings,
+
 					customTile: function(obj) {
 						var html = "<div class='square'>";
 						//html += " <h3>" + obj.text + "</h3>";
@@ -37,8 +43,8 @@
 					},
 				});
 
-				$("#reset").click(function() {
-					rollDiv.InfinityRoll("reset");
+				$("#syncDOM").click(function() {
+					rollDiv.InfinityRoll("syncDOM");
 				});
 			});
 		</script>
