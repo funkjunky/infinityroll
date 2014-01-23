@@ -1,4 +1,6 @@
 TODO:
+ - add tests 
+
  - preloading images?
 	- create an image tag "new Image()" then set it's .src, and bam, it'll be cached. See: http://stackoverflow.com/questions/8450068/is-there-a-way-to-load-images-to-users-cache-asynchronously/8450190#8450190
  - add an end. Let the user define what the end looks like when we call moreResults

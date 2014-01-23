@@ -7,14 +7,13 @@
 		<h2>An infinite scroll plugin that can handle any content</h2>
 		<div id="container">
 		</div>
-		<div style="position: fixed; bottom:0px; background-color:white;">HI!</div>
 		<link rel="stylesheet" type="text/css" href="bootstrap.min.css">
 		<link rel="stylesheet" type="text/css" href="brandicted.css">
 		<link rel="stylesheet" type="text/css" href="infinityroll.css">
-		<script src="jquery.js"></script>
-		<script src="underscore.js"></script>
-		<script src="backbone.js"></script>
-		<script src="infinityroll.js"></script>
+		<script src="../jquery.js"></script>
+		<script src="../underscore.js"></script>
+		<script src="../backbone.js"></script>
+		<script src="../jquery.infinityroll.js"></script>
 		<script>
 			$(function() {
 				var Happenings = Backbone.Collection.extend({
@@ -36,7 +35,7 @@
 					customTile: function(obj) {
 						var html = "<div class='square'>";
 						html += " <h3>" + obj.id + "</h3>";
-						html += " <img src='"+obj.media.square.url+"'></img>";
+						html += " <img src='"+obj.get('media').square.url+"'></img>";
 						html += "</div>";
 						return html;
 					},
