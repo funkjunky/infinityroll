@@ -5,7 +5,6 @@
 	<body>
 		<h1>Testing out InfinityRoll</h1>
 		<h2>An infinite scroll plugin that can handle any content</h2>
-		<button id="syncDOM">Sync DOM</button>
 		<div id="container">
 		</div>
 		<div style="position: fixed; bottom:0px; background-color:white;">HI!</div>
@@ -36,15 +35,11 @@
 
 					customTile: function(obj) {
 						var html = "<div class='square'>";
-						//html += " <h3>" + obj.text + "</h3>";
+						html += " <h3>" + obj.id + "</h3>";
 						html += " <img src='"+obj.media.square.url+"'></img>";
 						html += "</div>";
 						return html;
 					},
-				});
-
-				$("#syncDOM").click(function() {
-					rollDiv.InfinityRoll("syncDOM");
 				});
 			});
 		</script>
