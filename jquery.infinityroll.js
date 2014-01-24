@@ -17,17 +17,18 @@
 			var my_options = options;
 			return this.each(function() {
 				var defaults = {
+					start: true,
 					customTile: function() { return "<img src='"+imgurl+"'></img>"; },
 					//end: function() { return "<h1>NO MORE</h1>"; },
-                    prepend: null,
+					prepend: null,
 					bbCollection: null,
-                    bbImageMember: null,
+					bbImageMember: null,
 					displayRange: {begin: 0, end: 20}, //default 0-10
 					_displayedRange: {begin: 0, end: 0}, //used to know when to sync
 					_resultCount: -2, //it just needs to be larger than displayRange.end
-                    _prerenderingImageCount: 0,
+					_prerenderingImageCount: 0,
 					tilesToBuffer: 5,
-                    dataToBufferAhead: 50,
+					dataToBufferAhead: 50,
 					_dom: [],
 				};
 
@@ -41,12 +42,14 @@
 
 				var $this = $(this).data("InfinityRoll");
 
-                if($this.prepend)
-                    $(this).InfinityRoll("prependTile", $this.prepend);
-			
-                $this.waitingForDataToDisplayImages = true;
-                $(this).trigger('bufferingBegins');
-                $(this).InfinityRoll("syncData", true);
+				if($this.prepend)
+					$(this).InfinityRoll("prependTile", $this.prepend);
+		
+				if($this.start) {
+					$this.waitingForDataToDisplayImages = true;
+					$(this).trigger('bufferingBegins');
+					$(this).InfinityRoll("syncData");
+				}
 
 				//scrolling event.
 				var self = this;
@@ -105,6 +108,14 @@
                 {
                     $(this).append(tile);
                 },
+					 unprependTile: function()
+					 {
+						 $(this).children().first().remove();
+					 },
+					 unappendTile: function()
+					 {
+						 $(this).children().last().remove();
+					 },
                 remove: function(id)
                 {
                     var $this = $(this).data("InfinityRoll");
@@ -112,7 +123,10 @@
                     delete $this._dom[id];
                     --$this._displayedRange.end;
                 },
-                syncData: function()
+					 start: function(fncCB) {
+						this.InfinityRoll('syncData', fncCB);
+					 },
+                syncData: function(fncCB)
                 {
                     var $this = $(this).data("InfinityRoll");
                     /*if we have enough data, then just return.*/
@@ -148,6 +162,7 @@
                                         $(self).trigger('bufferingEnds');
                                     $(self).InfinityRoll("syncImages"); //Now that we have more data, we need to add the tiles the user is waiting for.
                                 }
+						  				  fncCB('Still in sync');
                                 return;
                             }
                            
@@ -167,6 +182,7 @@
                                             $(self).trigger('bufferingEnds');
                                         $(self).InfinityRoll("syncImages");
                                     }
+												 fncCB('Had to resync');
                                 },
                                 failure: function() {
                                     console.log("failed to grab data for a sync");
