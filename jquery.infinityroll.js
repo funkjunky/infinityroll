@@ -23,7 +23,7 @@
 					prepend: null,
 					bbCollection: null,
 					bbImageMember: null,
-					displayRange: {begin: 0, end: 20}, //default 0-10
+					displayRange: {begin: 0, end: 20}, //default 0-20
 					_displayedRange: {begin: 0, end: 0}, //used to know when to sync
 					_resultCount: -2, //it just needs to be larger than displayRange.end
 					_prerenderingImageCount: 0,
@@ -53,23 +53,11 @@
 
 				//scrolling event.
 				var self = this;
-				var addMoreResultsCB = function() {
-					$this.displayRange.end += $this.tilesToBuffer;
-					console.log("SCROLL: Extending displayRange: " + $this.displayRange.begin + " -> " + $this.displayRange.end);
-                    if(!$this.waitingForDataToDisplayImages && $this.displayRange.end < ($this._resultCount + $this.tilesToBuffer)) {
-                        if($this.displayRange.end + $this.dataToBufferAhead > $this.bbCollection.length)
-                            $(self).InfinityRoll("syncData");
-                        return $(self).InfinityRoll("syncImages");
-                    } else if($this.waitingForDataToDisplayImages)
-                        $(self).InfinityRoll('syncData');
-
-                    return false;
-				};
 				var elemNotWindow = ($(this).css("overflow") == "scroll" && $(this).height() > 0);
 				if(elemNotWindow)
 					$(this).on("scroll.InfinityRoll", function() {
 						if($(this)[0].scrollHeight - $(this).scrollTop() < $(this).outerHeight() + 800)
-							addMoreResultsCB();
+							$(this).InfinityRoll('showMoreResults');
 					});
 				else
 				{
@@ -78,7 +66,7 @@
                         if(hasHitBottom())
                         {
                             $(window).off('scroll.InfinityRoll');
-                            if(addMoreResultsCB() && hasHitBottom())
+                            if($(this).InfinityRoll('showMoreResults') && hasHitBottom())
                             {
                                 //first is for chrome, seocnd for ff.
                                 //TODO: find a better solution than delay for ff
@@ -162,7 +150,8 @@
                                         $(self).trigger('bufferingEnds');
                                     $(self).InfinityRoll("syncImages"); //Now that we have more data, we need to add the tiles the user is waiting for.
                                 }
-						  				  fncCB('Still in sync');
+						  				  if(fncCB)
+											  fncCB('Still in sync');
                                 return;
                             }
                            
@@ -182,7 +171,8 @@
                                             $(self).trigger('bufferingEnds');
                                         $(self).InfinityRoll("syncImages");
                                     }
-												 fncCB('Had to resync');
+									 			if(fncCB)
+													fncCB('Had to resync');
                                 },
                                 failure: function() {
                                     console.log("failed to grab data for a sync");
@@ -253,6 +243,19 @@
                     //console.log("finished loading more containers. count: " + $(this).children().length);
                     return true;
                 },
+					 showMoreResults: function() {
+                		var $this = $(this).data("InfinityRoll");
+							$this.displayRange.end += $this.tilesToBuffer;
+							console.log("SCROLL: Extending displayRange: " + $this.displayRange.begin + " -> " + $this.displayRange.end);
+						  if(!$this.waitingForDataToDisplayImages && $this.displayRange.end < ($this._resultCount + $this.tilesToBuffer)) {
+								if($this.displayRange.end + $this.dataToBufferAhead > $this.bbCollection.length)
+									 $(this).InfinityRoll("syncData");
+								return $(this).InfinityRoll("syncImages");
+						  } else if($this.waitingForDataToDisplayImages)
+								$(this).InfinityRoll('syncData');
+
+						  return false;
+					 },
                 destroy: function() {
                     $(this).removeData("InfinityRoll");
                     $(this).unbind(".InfinityRoll");

@@ -5,17 +5,20 @@ $(function() {
 	});
 
 	module('Test InfinityRoll Initialization', {
-		setup: setupInfinityRoll
+		setup: setupInfinityRoll,
+		teardown: function() {
+			$('#container').InfinityRoll('destroy');
+		},
 	});
-	test('InfinityRoll Data Exists', function() {
+	test('InfinityRoll Data Exists', 1, function() {
 		ok((typeof $('#container').data('InfinityRoll')) !== 'undefined', 'InfinityRoll Data Created.')
 	});
-	test('Prepending / Appending after Initialization', function() {
+	test('Prepending / Appending after Initialization', 4, function() {
 		var cont = $('#container');
 		var pv = 'hi';
 		var av = 'yo';
 		cont.InfinityRoll('prependTile', '<p id="'+pv+'">'+pv+'</p>');
-		ok(cont.children('#'+pv).text() === pv
+		ok(cont.children().first().text() === pv
 			, 'Prepend simply prepends something to the container. Nothing more.');
 
 		cont.InfinityRoll('unprependTile');
@@ -23,7 +26,7 @@ $(function() {
 			, 'Unprepend removes a prepended element');
 
 		cont.InfinityRoll('appendTile', '<p id="'+av+'">'+av+'</p>');
-		ok(cont.children('#'+av).text() == av
+		ok(cont.children().last().text() == av
 			, 'Append appends something to the container');
 
 		cont.InfinityRoll('unappendTile');
@@ -38,8 +41,27 @@ $(function() {
 			start();
 		});
 	});
+
+	module('Test InfinityRoll Scrolling', {
+		setup: setupInfinityRoll,
+		teardown: function() {
+			$('#container').InfinityRoll('destroy');
+		},
+	});
+	asyncTest('"showMoreResults" InfinityRoll', 2, function() {
+		$('#container').InfinityRoll('start', function(status) {
+			var $this = $('#container').data('InfinityRoll');
+			var oldEnd = $this.displayRange.end;
+			var buffer = $this.tilesToBuffer;
+			$('#container').InfinityRoll('showMoreResults');
+			equal($this.displayRange.end, $('#container').children().length, 'displayRange: ' + $this.displayRange.end);
+			equal($this.displayRange.end, oldEnd + buffer, 'oldEnd(='+oldEnd+') + buffer = newEnd(='+$this.displayRange.end+')');
+			start();
+		});
+	});
+	
 	//tests to add:
-	//
+	//scrolling
 });
 
 function setupInfinityRoll()
@@ -63,5 +85,6 @@ function setupInfinityRoll()
 			html += "</div>";
 			return html;
 		},
+		displayRange: {begin: 0, end: 15},
 	});
 }
