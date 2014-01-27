@@ -29,7 +29,7 @@
 					_prerenderingImageCount: 0,
 					tilesToBuffer: 5,
 					dataToBufferAhead: 50,
-					_dom: [],
+					_dom: {},
 				};
 
 				if(!_.isUndefined($(this).data("InfinityRoll"))) {
@@ -131,10 +131,10 @@
           
                     var self = this;
                     $this.bbCollection.fetch({
-                        remove: false,
                         data: options,
                         success: function(collection, result) {
                             $(self).InfinityRoll('_preloadImages');
+									 //TODO: I'm not sure this is the best approach to first load... maybe use fncCB instead? Hmmm or maybe i can't... try things.
                             if($this._resultCount === -2) {
                                 $this._resultCount = result.total;
                                 $(self).InfinityRoll("syncImages");
@@ -152,37 +152,12 @@
                                 }
 						  				  if(fncCB)
 											  fncCB('Still in sync');
-                                return;
-                            }
-                           
-                            console.log("InfinityRoll Data Out of Sync...");
-                            $this._resultCount = result.total; //get the new total.
-                            /*call fetchs with entire range, to get new data.*/
-                            $this.bbCollection.fetch({
-                                data: {
-                                    _start: 0,	//from the beginning...
-                                    _limit: $this.displayRange.end + $this.dataToBufferAhead,
-                                },
-                                success: function() {
-                                    if($this.waitingForDataToDisplayImages)
-                                    {
-                                        $this.waitingForDataToDisplayImages = false;
-                                        if($this._prerenderingImageCount <= 0)
-                                            $(self).trigger('bufferingEnds');
-                                        $(self).InfinityRoll("syncImages");
-                                    }
-									 			if(fncCB)
-													fncCB('Had to resync');
-                                },
-                                failure: function() {
-                                    console.log("failed to grab data for a sync");
-                                    if($this.waitingForDataToDisplayImages)
-                                    {
-                                        $this.waitingForDataToDisplayImages = false;
-                                        $(self).trigger('bufferingEnds');
-                                    }
-                                },
-                            });
+                            } else
+									 {
+										 console.log("InfinityRoll Data Out of Sync...");
+										 $this._resultCount = result.total; //get the new total.
+										$(self).InfinityRoll('resetData', fncCB);
+									 }
                         },
                         failure: function() {
                             console.log("failed to load more data");
@@ -195,6 +170,35 @@
                         },
                     });
                 },
+					 resetData: function(fncCB) {
+						 /*call fetchs with entire range, to get new data.*/
+						 $this.bbCollection.fetch({
+							  data: {
+									_start: 0,	//from the beginning...
+						 //TODO: I don't think I should buffer an extra amount.
+									_limit: $this.displayRange.end + $this.dataToBufferAhead,
+							  },
+							  success: function() {
+									if($this.waitingForDataToDisplayImages)
+									{
+										 $this.waitingForDataToDisplayImages = false;
+										 if($this._prerenderingImageCount <= 0)
+											  $(self).trigger('bufferingEnds');
+										 $(self).InfinityRoll("syncImages");
+									}
+									if(fncCB)
+										fncCB('Had to resync');
+							  },
+							  failure: function() {
+									console.log("failed to grab data for a sync");
+									if($this.waitingForDataToDisplayImages)
+									{
+										 $this.waitingForDataToDisplayImages = false;
+										 $(self).trigger('bufferingEnds');
+									}
+							  },
+						 });
+					 },
                 syncImages: function() {
                     var $this = $(this).data("InfinityRoll");
 
@@ -215,10 +219,10 @@
                     for(var i = $this.displayRange.begin; i < $this.displayRange.end && i < $this.bbCollection.length; ++i)
                     {
                         var model = $this.bbCollection.at(i);
-                        var id = model.get("id");
+                        var id = String(model.get("id"));
 
                         if(!$this._dom[id])
-                            this.append($this._dom[id] = $($this.customTile(model, this)));
+                           this.append($this._dom[id] = $($this.customTile(model, this)));
                         //This bit is necessary for reordering.
                         //else if(jQuery.contains(this.get(0), $this._dom[id].get(0)))
                         //    this.append($this._dom[id]);
@@ -233,12 +237,13 @@
                     };
 
                     //remove any unused DOM
-                    for(var key in $this._dom)
+                    for(var key in $this._dom) {
                         if(keepers.indexOf(key) == -1)
                         {
                             $this._dom[key].remove();
                             delete $this._dom[key];
                         }
+						  }
                     
                     //console.log("finished loading more containers. count: " + $(this).children().length);
                     return true;
@@ -262,6 +267,17 @@
                     $(window).unbind(".InfinityRoll");
                     $(this).empty();
                 },
+					 preloadImage: function(imgSrc, successCB, failureCB) {
+						 /*This is all it takes to predownload an image*/
+						 var img = new Image();
+						 img.src = imgSrc;
+						 if(img.complete)
+							  _.delay(_.bind(successCB, img), 50); //TODO: not need the delay?
+						 else
+							 img.onload = successCB;
+
+						 img.onerror = failureCB;
+					 },
                 //TODO: put this somewhere else... it's a private method...
                 _preloadImages: function() {
                     var $this = $(this).data('InfinityRoll');
@@ -269,25 +285,20 @@
                     if($this.bbImageMember)     /*if the developer provided us with the image member in each object, then we can predownload the image.*/
                     {
                         for(var i=$this._displayedRange.end; i<$this.bbCollection.length; ++i) {
-                            /*This is all it takes to predownload an image*/
                             ++$this._prerenderingImageCount;
-                            var img = new Image();
-                            img.onload = function() {
-                                $(self).trigger('imageFinishedLoading', $(this));
-                                --$this._prerenderingImageCount;
-                                if($this._prerenderingImageCount <= 0 && !$this.waitingForDataToDisplayImages)
-                                    $(self).trigger('bufferingEnds');
-
-                            };
-                            if(img.complete)
-                                _.delay(function() { $(self).trigger('imageFinishedLoading', [$(img)]); }, 50);
-
-                            img.onerror = function() {
-                                --$this._prerenderingImageCount;
-                                if($this._prerenderingImageCount <= 0 && !$this.waitingForDataToDisplayImages)
-                                    $(self).trigger('bufferingEnds');
-                            }
-                            img.src = $this.bbImageMember($this.bbCollection.at(i).toJSON());
+									 var successCB = function() {
+										  $(self).trigger('imageFinishedLoading', $(this));
+										  --$this._prerenderingImageCount;
+										  if($this._prerenderingImageCount <= 0 && !$this.waitingForDataToDisplayImages)
+												$(self).trigger('bufferingEnds');
+									 };
+									 var failureCB = function() {
+										  --$this._prerenderingImageCount;
+										  if($this._prerenderingImageCount <= 0 && !$this.waitingForDataToDisplayImages)
+												$(self).trigger('bufferingEnds');
+									 };
+									 $(this).InfinityRoll('preloadImage', 
+										 $this.bbImageMember($this.bbCollection.at(i).toJSON()), successCB, failureCB);
                         }
                     }
                 },

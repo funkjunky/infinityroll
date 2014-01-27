@@ -7,17 +7,17 @@
 		<h2>An infinite scroll plugin that can handle any content</h2>
 		<div id="container">
 		</div>
-		<link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+		<link rel="stylesheet" type="text/css" href="../libs/bootstrap.min.css">
 		<link rel="stylesheet" type="text/css" href="brandicted.css">
 		<link rel="stylesheet" type="text/css" href="infinityroll.css">
-		<script src="../jquery.js"></script>
-		<script src="../underscore.js"></script>
-		<script src="../backbone.js"></script>
+		<script src="../libs/jquery.js"></script>
+		<script src="../libs/underscore.js"></script>
+		<script src="../libs/backbone.js"></script>
 		<script src="../jquery.infinityroll.js"></script>
 		<script>
 			$(function() {
 				var Happenings = Backbone.Collection.extend({
-					url: "brandicted.json",
+					url: "../testdata/rolls.json",
 					model: Backbone.Model,
 					parse: function(result) {
 						console.log("fetched results");
@@ -33,8 +33,8 @@
 
 					customTile: function(obj) {
 						var html = "<div class='square'>";
-						html += " <h3>" + obj.id + "</h3>";
-						html += " <img src='"+obj.get('media').square.url+"'></img>";
+						html += " <h3>" + obj.get('name') + "</h3>";
+						html += " <img src='"+obj.get('img')+"'></img>";
 						html += "</div>";
 						return html;
 					},
