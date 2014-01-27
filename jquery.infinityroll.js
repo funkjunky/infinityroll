@@ -52,7 +52,6 @@
 				}
 
 				//scrolling event.
-				var self = this;
 				var elemNotWindow = ($(this).css("overflow") == "scroll" && $(this).height() > 0);
 				if(elemNotWindow)
 					$(this).on("scroll.InfinityRoll", function() {
@@ -61,26 +60,25 @@
 					});
 				else
 				{
-					//console.log("Warning: doing infinite scroll on window. If you attached InfinityRoll to multiple objects, then  they will all load more results when you scroll on the entire page."); //TODO: only show this warning, when we know there are multiple objects assigned, and make it more clear that it is a bad idea except in very special circumstances.
-                    var windowCB = function() {
-                        if(hasHitBottom())
-                        {
-                            $(window).off('scroll.InfinityRoll');
-                            if($(this).InfinityRoll('showMoreResults') && hasHitBottom())
-                            {
-                                //first is for chrome, seocnd for ff.
-                                //TODO: find a better solution than delay for ff
-                                windowCB();
-                                window.setTimeout(windowCB, 300);
-                            }
-                            $(window).on('scroll.InfinityRoll', windowCB);
-                        }
-                            
-                    };
-                    $(window).on("scroll.InfinityRoll", windowCB);
-                    //$(window).smack({threshold: '200px'})
-                    //    .done(addMoreResultsCB);
-                }
+					  var windowCB = function() {
+							if(hasHitBottom())
+							{
+								 $(window).off('scroll.InfinityRoll');
+								 if($(this).InfinityRoll('showMoreResults') && hasHitBottom())
+								 {
+									  //first is for chrome, seocnd for ff.
+									  //TODO: find a better solution than delay for ff
+									  windowCB();
+									  window.setTimeout(windowCB, 300);
+								 }
+								 $(window).on('scroll.InfinityRoll', windowCB);
+							}
+								 
+					  };
+					  $(window).on("scroll.InfinityRoll", windowCB);
+					  //$(window).smack({threshold: '200px'})
+					  //    .done(addMoreResultsCB);
+				 }
 			});
 		}
 		else
@@ -129,15 +127,14 @@
                         _limit: $this.dataToBufferAhead,
                     });
           
-                    var self = this;
                     $this.bbCollection.fetch({
                         data: options,
-                        success: function(collection, result) {
-                            $(self).InfinityRoll('_preloadImages');
+                        success: _.bind(function(collection, result) {
+                            $(this).InfinityRoll('preloadCollectionImages');
 									 //TODO: I'm not sure this is the best approach to first load... maybe use fncCB instead? Hmmm or maybe i can't... try things.
                             if($this._resultCount === -2) {
                                 $this._resultCount = result.total;
-                                $(self).InfinityRoll("syncImages");
+                                $(this).InfinityRoll("syncImages");
                             }
 
                             //if we are still in sync, then just call CB
@@ -147,8 +144,8 @@
                                 {
                                     $this.waitingForDataToDisplayImages = false; /*reset the flag.*/
                                     if($this._prerenderingImageCount <= 0)
-                                        $(self).trigger('bufferingEnds');
-                                    $(self).InfinityRoll("syncImages"); //Now that we have more data, we need to add the tiles the user is waiting for.
+                                        $(this).trigger('bufferingEnds');
+                                    $(this).InfinityRoll("syncImages"); //Now that we have more data, we need to add the tiles the user is waiting for.
                                 }
 						  				  if(fncCB)
 											  fncCB('Still in sync');
@@ -156,18 +153,18 @@
 									 {
 										 console.log("InfinityRoll Data Out of Sync...");
 										 $this._resultCount = result.total; //get the new total.
-										$(self).InfinityRoll('resetData', fncCB);
+										$(this).InfinityRoll('resetData', fncCB);
 									 }
-                        },
-                        failure: function() {
+                        }, this),
+                        failure: _.bind(function() {
                             console.log("failed to load more data");
                             if($this.waitingForDataToDisplayImages)
                             {
                                 $this.waitingForDataToDisplayImages = false;
                                 if($this._prerenderingImageCount <= 0)
-                                    $(self).trigger('bufferingEnds');
+                                    $(this).trigger('bufferingEnds');
                             }
-                        },
+                        }, this),
                     });
                 },
 					 resetData: function(fncCB) {
@@ -178,25 +175,25 @@
 						 //TODO: I don't think I should buffer an extra amount.
 									_limit: $this.displayRange.end + $this.dataToBufferAhead,
 							  },
-							  success: function() {
+							  success: _.bind(function() {
 									if($this.waitingForDataToDisplayImages)
 									{
 										 $this.waitingForDataToDisplayImages = false;
 										 if($this._prerenderingImageCount <= 0)
-											  $(self).trigger('bufferingEnds');
-										 $(self).InfinityRoll("syncImages");
+											  $(this).trigger('bufferingEnds');
+										 $(this).InfinityRoll("syncImages");
 									}
 									if(fncCB)
 										fncCB('Had to resync');
-							  },
-							  failure: function() {
+							  }, this),
+							  failure: _.bind(function() {
 									console.log("failed to grab data for a sync");
 									if($this.waitingForDataToDisplayImages)
 									{
 										 $this.waitingForDataToDisplayImages = false;
-										 $(self).trigger('bufferingEnds');
+										 $(this).trigger('bufferingEnds');
 									}
-							  },
+							  }, this),
 						 });
 					 },
                 syncImages: function() {
@@ -278,24 +275,23 @@
 
 						 img.onerror = failureCB;
 					 },
-                //TODO: put this somewhere else... it's a private method...
-                _preloadImages: function() {
+                preloadCollectionImages: function() {
                     var $this = $(this).data('InfinityRoll');
-                    var self = this;
+                    var container = this;
                     if($this.bbImageMember)     /*if the developer provided us with the image member in each object, then we can predownload the image.*/
                     {
                         for(var i=$this._displayedRange.end; i<$this.bbCollection.length; ++i) {
                             ++$this._prerenderingImageCount;
 									 var successCB = function() {
-										  $(self).trigger('imageFinishedLoading', $(this));
+										  $(container).trigger('imageFinishedLoading', $(this));
 										  --$this._prerenderingImageCount;
 										  if($this._prerenderingImageCount <= 0 && !$this.waitingForDataToDisplayImages)
-												$(self).trigger('bufferingEnds');
+												$(container).trigger('bufferingEnds');
 									 };
 									 var failureCB = function() {
 										  --$this._prerenderingImageCount;
 										  if($this._prerenderingImageCount <= 0 && !$this.waitingForDataToDisplayImages)
-												$(self).trigger('bufferingEnds');
+												$(container).trigger('bufferingEnds');
 									 };
 									 $(this).InfinityRoll('preloadImage', 
 										 $this.bbImageMember($this.bbCollection.at(i).toJSON()), successCB, failureCB);

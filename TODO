@@ -1,12 +1,5 @@
 TODO:
 
-- clean up the files
-- replace all instances of 'self' with this, and just use _.bind
- - release?
-	- first clean up ALL TODOs
-	- next make sure there isn't any brandicted stuff lieing around in it.
-
-
  - rename the options so they are more intelligent.
  - I need to try and clean up any and all duplicate code and make my code look very nice and documented
 	 - remove self. We shouldn just reorganize out code so this is always in context.
